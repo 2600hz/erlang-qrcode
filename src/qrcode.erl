@@ -1,16 +1,16 @@
-%% Copyright 2011 Steve Davis <steve@simulacity.com>
-                                                %
-                                                % Licensed under the Apache License, Version 2.0 (the "License");
-                                                % you may not use this file except in compliance with the License.
-                                                % You may obtain a copy of the License at
-                                                %
-                                                % http://www.apache.org/licenses/LICENSE-2.0
-                                                %
-                                                % Unless required by applicable law or agreed to in writing, software
-                                                % distributed under the License is distributed on an "AS IS" BASIS,
-                                                % WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-                                                % See the License for the specific language governing permissions and
-                                                % limitations under the License.
+%%% Copyright 2011 Steve Davis <steve@simulacity.com>
+%%%
+%%% Licensed under the Apache License, Version 2.0 (the "License");
+%%% you may not use this file except in compliance with the License.
+%%% You may obtain a copy of the License at
+%%%
+%%% http://www.apache.org/licenses/LICENSE-2.0
+%%%
+%%% Unless required by applicable law or agreed to in writing, software
+%%% distributed under the License is distributed on an "AS IS" BASIS,
+%%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%%% See the License for the specific language governing permissions and
+%%% limitations under the License.
 
 -module(qrcode).
 
@@ -19,6 +19,10 @@
 
 -export([encode/1, encode/2, decode/1]).
 
+-type qrcode() :: #qrcode{}.
+
+-export_type([qrcode/0]).
+
 %%
 decode(_Bin) ->
     {error, not_implemented}.
@@ -26,7 +30,7 @@ decode(_Bin) ->
 %%
 encode(Bin) ->
     encode(Bin, 'M').
-                                                %
+%%%
 encode(Bin, ECC) when is_binary(Bin) ->
     Params = choose_qr_params(Bin, ECC),
     Content = encode_content(Params, Bin),
@@ -60,7 +64,7 @@ choose_encoding(_Bin) ->
 %%
 choose_version(Type, ECC, Length) ->
     choose_version(Type, ECC, Length, ?TABLES).
-                                                %
+%%%
 choose_version(byte, ECC, Length, [{{ECC, Version}, {_, _, Capacity, _}, ECCBlocks, Remainder}|_])
   when Capacity >= Length ->
     {byte, Version, ECCBlocks, Remainder};
@@ -70,7 +74,7 @@ choose_version(Type, ECC, Length, [_|T]) ->
 %%
 encode_content(#qr_params{mode = Mode, version = Version}, Bin) ->
     encode_content(Mode, Version, Bin).
-                                                %
+%%%
 encode_content(byte, Version, Bin) ->
     encode_bytes(Version, Bin).
 
@@ -136,7 +140,7 @@ interleave_blocks([], Acc, Bin) ->
 interleave_blocks([<<X, Data/binary>>|T], Acc, Bin) ->
     interleave_blocks(T, [Data|Acc], <<Bin/binary, X>>).
 
-                                                %
+%%%
 encode_bytes(Version, Bin) when is_binary(Bin) ->
     Size = size(Bin),
     CharacterCountBitSize = cci(?BYTE_MODE, Version),
@@ -149,8 +153,8 @@ ecc('M') -> 0;
 ecc('Q') -> 3;
 ecc('H') -> 2.
 
-                                                % Table 5. Charset encoder
-                                                % NOTE: removed
+%%% Table 5. Charset encoder
+%%% NOTE: removed
 
 %%
 alignment_patterns(Version) ->
@@ -158,7 +162,7 @@ alignment_patterns(Version) ->
     L = element(Version, ?ALIGNMENT_COORDINATES),
     L0 = [{X, Y} || X <- L, Y <- L],
     L1 = [{X, Y} || {X, Y} <- L0, is_finder_region(D, X, Y) =:= false],
-                                                % Change the natural sort order so that rows have greater weight than columns
+%%% Change the natural sort order so that rows have greater weight than columns
     F = fun
             ({_, Y}, {_, Y0}) when Y < Y0 ->
                                     true;
@@ -168,7 +172,7 @@ alignment_patterns(Version) ->
                                     false
                             end,
 lists:sort(F, L1).
-                                                %
+%%%
 is_finder_region(D, X, Y)
   when (X =< 8 andalso Y =< 8)
        orelse (X =< 8 andalso Y >= D - 8)
@@ -181,7 +185,7 @@ is_finder_region(_, _, _) ->
 cci(Mode, Version) when Version >= 1 andalso Version =< 40->
     {Mode, CC} = lists:keyfind(Mode, 1, ?CCI_BITSIZE),
     cci0(CC, Version).
-                                                %
+%%%
 cci0([X, _, _], Version) when Version =< 9 ->
     X;
 cci0([_, X, _], Version) when Version =< 26 ->
