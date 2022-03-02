@@ -1,16 +1,16 @@
 %% Copyright 2011 Steve Davis <steve@simulacity.com>
-%
-% Licensed under the Apache License, Version 2.0 (the "License");
-% you may not use this file except in compliance with the License.
-% You may obtain a copy of the License at
-% 
-% http://www.apache.org/licenses/LICENSE-2.0
-% 
-% Unless required by applicable law or agreed to in writing, software
-% distributed under the License is distributed on an "AS IS" BASIS,
-% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-% See the License for the specific language governing permissions and
-% limitations under the License.
+%%%
+%%% Licensed under the Apache License, Version 2.0 (the "License");
+%%% you may not use this file except in compliance with the License.
+%%% You may obtain a copy of the License at
+%%%
+%%% http://www.apache.org/licenses/LICENSE-2.0
+%%%
+%%% Unless required by applicable law or agreed to in writing, software
+%%% distributed under the License is distributed on an "AS IS" BASIS,
+%%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%%% See the License for the specific language governing permissions and
+%%% limitations under the License.
 
 -module(qrcode_reedsolomon).
 
@@ -20,50 +20,49 @@
 
 %%
 encode(Bin, Degree) when Degree > 0 ->
-	Field = gf256:field(?QRCODE_GF256_PRIME_MODULUS),
-	Generator = generator(Field, Degree),
-	Data = binary_to_list(Bin),
-	Coeffs = gf256:monomial_product(Field, Data, 1, Degree),
-	{_Quotient, Remainder} = gf256:divide(Field, Coeffs, Generator),
-	ErrorCorrectionBytes = list_to_binary(Remainder),
-	<<ErrorCorrectionBytes/binary>>.
+    Field = gf256:field(?QRCODE_GF256_PRIME_MODULUS),
+    Generator = generator(Field, Degree),
+    Data = binary_to_list(Bin),
+    Coeffs = gf256:monomial_product(Field, Data, 1, Degree),
+    {_Quotient, Remainder} = gf256:divide(Field, Coeffs, Generator),
+    ErrorCorrectionBytes = list_to_binary(Remainder),
+    <<ErrorCorrectionBytes/binary>>.
 
 %%
 bch_code(Byte, Poly) ->
-	MSB = msb(Poly),
-	Byte0 = Byte bsl (MSB - 1),
-	bch_code(Byte0, Poly, MSB).
+    MSB = msb(Poly),
+    Byte0 = Byte bsl (MSB - 1),
+    bch_code(Byte0, Poly, MSB).
 
 
 %% Internal
 
 %%
 generator(F, D) when D > 0 ->
-	generator(F, [1], D, 0).
-%	
+    generator(F, [1], D, 0).
+%%%
 generator(_, P, D, D) ->
-	P;
+    P;
 generator(F, P, D, Count) ->
-	P0 = gf256:polynomial_product(F, P, [1, gf256:exponent(F, Count)]),
-	generator(F, P0, D, Count + 1).
-	
-%
+    P0 = gf256:polynomial_product(F, P, [1, gf256:exponent(F, Count)]),
+    generator(F, P0, D, Count + 1).
+
+%%%
 bch_code(Byte, Poly, MSB) ->
-	case msb(Byte) >= MSB of
-	true ->
-		Byte0 = Byte bxor (Poly bsl (msb(Byte) - MSB)),
-		bch_code(Byte0, Poly, MSB);
-	false ->
-		Byte
-	end.
+    case msb(Byte) >= MSB of
+        true ->
+            Byte0 = Byte bxor (Poly bsl (msb(Byte) - MSB)),
+            bch_code(Byte0, Poly, MSB);
+        false ->
+            Byte
+    end.
 
 %%
 msb(0) ->
-	0;
+    0;
 msb(Byte) ->
-	msb(Byte, 0).
+    msb(Byte, 0).
 msb(0, Count) ->
-	Count;
+    Count;
 msb(Byte, Count) ->
-	msb(Byte bsr 1, Count + 1).
-
+    msb(Byte bsr 1, Count + 1).
