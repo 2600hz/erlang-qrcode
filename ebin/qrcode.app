@@ -5,4 +5,4 @@
   {registered, []},
   {env, []},
   {applications, [kernel, stdlib]}
-]}.
+ ]}.
